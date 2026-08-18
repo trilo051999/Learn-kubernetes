@@ -17,7 +17,20 @@ services:
 
   service-b:
     build: ./services/service-b
+    ports:
+      - "3001:3001"
     environment:
       - REDIS_URL=redis://redis:6379
+      - METRICS_PORT=3001
+    depends_on:
+      - redis
+
+  service-c:
+    build: ./services/service-c
+    ports:
+      - "3002:3002"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PORT=3002
     depends_on:
       - redis
