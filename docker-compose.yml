@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  service-a:
+    build: ./services/service-a
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
+  service-b:
+    build: ./services/service-b
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
