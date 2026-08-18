@@ -14,7 +14,7 @@ export async function getStats(): Promise<StatsResponse> {
 
   // Fetch all job keys
   const keys = await redisClient.keys('job:*');
-  
+
   let totalSubmitted = keys.length;
   let totalCompleted = 0;
   let totalFailed = 0;
@@ -34,9 +34,8 @@ export async function getStats(): Promise<StatsResponse> {
     }
   }
 
-  const averageProcessingTimeMs = totalCompleted > 0 
-    ? parseFloat((totalProcessingTimeMs / totalCompleted).toFixed(2))
-    : 0;
+  const averageProcessingTimeMs =
+    totalCompleted > 0 ? parseFloat((totalProcessingTimeMs / totalCompleted).toFixed(2)) : 0;
 
   return {
     queueLength,

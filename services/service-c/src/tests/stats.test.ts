@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import request = require('supertest');
 import { app } from '../index';
 import * as statsModel from '../models/statsModel';
@@ -22,8 +23,7 @@ describe('Service C API Endpoints', () => {
 
       const mockGetStats = jest.spyOn(statsModel, 'getStats').mockResolvedValue(mockStats);
 
-      const response = await request(app)
-        .get('/stats');
+      const response = await request(app).get('/stats');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockStats);
@@ -33,8 +33,7 @@ describe('Service C API Endpoints', () => {
 
   describe('GET /metrics', () => {
     it('should return Prometheus formatted metrics', async () => {
-      const response = await request(app)
-        .get('/metrics');
+      const response = await request(app).get('/metrics');
 
       expect(response.status).toBe(200);
       expect(response.header['content-type']).toContain('text/plain');

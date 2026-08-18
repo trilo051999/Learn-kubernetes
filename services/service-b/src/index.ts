@@ -74,7 +74,7 @@ async function runWorker(): Promise<void> {
     try {
       // Blocking pop from list
       const popped = await redisClient.brPop('job_queue', 0);
-      
+
       if (!popped) continue;
 
       jobId = popped.element;
