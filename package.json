@@ -1,0 +1,30 @@
+{
+  "name": "learn-kubernetes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint \"services/*/src/**/*.ts\"",
+    "format": "prettier --write \"services/*/src/**/*.ts\"",
+    "format:check": "prettier --check \"services/*/src/**/*.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://trilo051999@github.com/trilo051999/Learn-kubernetes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/trilo051999/Learn-kubernetes/issues"
+  },
+  "homepage": "https://github.com/trilo051999/Learn-kubernetes#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6"
+  }
+}

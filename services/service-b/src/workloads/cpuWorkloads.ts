@@ -20,7 +20,7 @@ export function calculatePrimes(): number {
 // Workload 2: Bcrypt hashing (10 rounds)
 export function hashPassword(): string {
   const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync("super-secret-password-to-hash", salt);
+  const hash = bcrypt.hashSync('super-secret-password-to-hash', salt);
   return hash;
 }
 

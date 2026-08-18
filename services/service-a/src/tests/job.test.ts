@@ -14,9 +14,7 @@ describe('Service A API Endpoints', () => {
     it('should submit a job successfully and return 202', async () => {
       const mockEnqueueJob = jest.spyOn(jobModel, 'enqueueJob').mockResolvedValue(undefined);
 
-      const response = await request(app)
-        .post('/submit')
-        .send();
+      const response = await request(app).post('/submit').send();
 
       expect(response.status).toBe(202);
       expect(response.body).toHaveProperty('jobId');
@@ -35,8 +33,7 @@ describe('Service A API Endpoints', () => {
 
       const mockGetJobStatus = jest.spyOn(jobModel, 'getJobStatus').mockResolvedValue(mockJobData);
 
-      const response = await request(app)
-        .get('/status/some-job-id');
+      const response = await request(app).get('/status/some-job-id');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockJobData);
@@ -46,8 +43,7 @@ describe('Service A API Endpoints', () => {
     it('should return 404 if the job does not exist', async () => {
       jest.spyOn(jobModel, 'getJobStatus').mockResolvedValue(null);
 
-      const response = await request(app)
-        .get('/status/non-existent-id');
+      const response = await request(app).get('/status/non-existent-id');
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error', 'Job not found');

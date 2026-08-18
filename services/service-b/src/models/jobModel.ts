@@ -6,8 +6,8 @@ export async function setJobProcessing(jobId: string): Promise<void> {
 }
 
 export async function setJobCompleted(
-  jobId: string, 
-  processingTimeMs: string, 
+  jobId: string,
+  processingTimeMs: string,
   result: string
 ): Promise<void> {
   await redisClient.hSet(`job:${jobId}`, 'status', 'completed');

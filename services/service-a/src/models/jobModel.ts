@@ -20,10 +20,10 @@ export async function enqueueJob(jobId: string): Promise<void> {
 
 export async function getJobStatus(jobId: string): Promise<JobData | null> {
   const data = await redisClient.hGetAll(`job:${jobId}`);
-  
+
   if (!data || Object.keys(data).length === 0) {
     return null;
   }
-  
+
   return data as unknown as JobData;
 }
