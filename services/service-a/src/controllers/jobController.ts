@@ -15,7 +15,7 @@ export async function submitJob(req: Request, res: Response, next: NextFunction)
 export async function getJobStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
-    const jobData = await jobModel.getJobStatus(id);
+    const jobData = await jobModel.getJobStatus(id as string);
 
     if (!jobData) {
       res.status(404).json({ error: 'Job not found' });
