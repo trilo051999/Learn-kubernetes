@@ -2,7 +2,7 @@
 FROM node:24-alpine AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
-RUN npm ci
+RUN npm install --no-audit
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
