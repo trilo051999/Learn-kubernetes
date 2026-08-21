@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import helmet from 'helmet';
 import { connectRedis } from './config/redis';
 import statsRoutes from './routes/statsRoutes';
 import { errorHandler } from './middlewares/errorHandler';
@@ -12,6 +14,12 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 app.use(express.json());
+app.use(helmet());
+app.use(
+  cors({
+    origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003']
+  })
+);
 
 // Mount the statistics routes
 app.use(statsRoutes);

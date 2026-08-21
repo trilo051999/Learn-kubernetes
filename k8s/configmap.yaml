@@ -6,3 +6,5 @@ data:
   REDIS_URL: "redis://redis-service:6379"
   PORT: "3000"
   METRICS_PORT: "3001"
+  JWT_SECRET: "my-super-secret-key-12345"
+  RATE_LIMIT_MAX: "1000"

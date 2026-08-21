@@ -1,0 +1,95 @@
+name: Deploy to AWS EKS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: Install Linting & Formatting Dependencies
+      run: npm install
+
+    - name: Run Code Linter Check
+      run: npm run lint
+
+    - name: Run Service A Unit Tests
+      run: |
+        cd services/service-a
+        npm install
+        npm run test
+
+    - name: Run Service B Unit Tests
+      run: |
+        cd services/service-b
+        npm install
+        npm run test
+
+    - name: Run Service C Unit Tests
+      run: |
+        cd services/service-c
+        npm install
+        npm run test
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Log in to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, Tag, and Push Images to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        # Build images
+        docker build -t $ECR_REGISTRY/service-a:${{ github.sha }} -t $ECR_REGISTRY/service-a:latest ./services/service-a
+        docker build -t $ECR_REGISTRY/service-b:${{ github.sha }} -t $ECR_REGISTRY/service-b:latest ./services/service-b
+        docker build -t $ECR_REGISTRY/service-c:${{ github.sha }} -t $ECR_REGISTRY/service-c:latest ./services/service-c
+        
+        # Push images
+        docker push $ECR_REGISTRY/service-a:${{ github.sha }}
+        docker push $ECR_REGISTRY/service-a:latest
+        docker push $ECR_REGISTRY/service-b:${{ github.sha }}
+        docker push $ECR_REGISTRY/service-b:latest
+        docker push $ECR_REGISTRY/service-c:${{ github.sha }}
+        docker push $ECR_REGISTRY/service-c:latest
+
+    - name: Set up Kubeconfig for EKS
+      run: |
+        aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+    - name: Deploy to EKS
+      run: |
+        # Substitute local images in the deployment manifests with Amazon ECR image tags
+        sed -i 's|image: service-a:latest|image: '"${{ steps.login-ecr.outputs.registry }}"'/service-a:'"${{ github.sha }}"'|g' k8s/service-a.yaml
+        sed -i 's|image: service-b:latest|image: '"${{ steps.login-ecr.outputs.registry }}"'/service-b:'"${{ github.sha }}"'|g' k8s/service-b.yaml
+        sed -i 's|image: service-c:latest|image: '"${{ steps.login-ecr.outputs.registry }}"'/service-c:'"${{ github.sha }}"'|g' k8s/service-c.yaml
+        
+        # Remove local image pull policy (so EKS can pull from ECR)
+        sed -i 's|imagePullPolicy: Never|imagePullPolicy: IfNotPresent|g' k8s/service-a.yaml
+        sed -i 's|imagePullPolicy: Never|imagePullPolicy: IfNotPresent|g' k8s/service-b.yaml
+        sed -i 's|imagePullPolicy: Never|imagePullPolicy: IfNotPresent|g' k8s/service-c.yaml
+        
+        # Apply deployments to the EKS cluster
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/redis.yaml
+        kubectl apply -f k8s/service-a.yaml
+        kubectl apply -f k8s/service-b.yaml
+        kubectl apply -f k8s/service-c.yaml
+        kubectl apply -f k8s/ingress.yaml
+        kubectl apply -f k8s/hpa.yaml

@@ -2,9 +2,11 @@
 import request = require('supertest');
 import { app } from '../index';
 import * as statsModel from '../models/statsModel';
+import * as jwt from 'jsonwebtoken';
 
-// Mock the model layer to prevent querying a live Redis database
+// Mock the model layer and jsonwebtoken
 jest.mock('../models/statsModel');
+jest.mock('jsonwebtoken');
 
 describe('Service C API Endpoints', () => {
   beforeEach(() => {
@@ -22,8 +24,11 @@ describe('Service C API Endpoints', () => {
       };
 
       const mockGetStats = jest.spyOn(statsModel, 'getStats').mockResolvedValue(mockStats);
+      jest.spyOn(jwt, 'verify').mockImplementation(() => ({ username: 'adminuser', role: 'admin' }));
 
-      const response = await request(app).get('/stats');
+      const response = await request(app)
+        .get('/stats')
+        .set('Authorization', 'Bearer mock-token-value');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockStats);
