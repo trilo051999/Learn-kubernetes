@@ -1,9 +1,11 @@
 import request from 'supertest';
 import { app } from '../index';
 import * as jobModel from '../models/jobModel';
+import * as jwt from 'jsonwebtoken';
 
-// Mock the model layer to prevent querying a live Redis database
+// Mock the model layer and jsonwebtoken
 jest.mock('../models/jobModel');
+jest.mock('jsonwebtoken');
 
 describe('Service A API Endpoints', () => {
   beforeEach(() => {
@@ -13,8 +15,12 @@ describe('Service A API Endpoints', () => {
   describe('POST /submit', () => {
     it('should submit a job successfully and return 202', async () => {
       const mockEnqueueJob = jest.spyOn(jobModel, 'enqueueJob').mockResolvedValue(undefined);
+      jest.spyOn(jwt, 'verify').mockImplementation(() => ({ username: 'testuser', role: 'user' }));
 
-      const response = await request(app).post('/submit').send();
+      const response = await request(app)
+        .post('/submit')
+        .set('Authorization', 'Bearer mock-token-value')
+        .send();
 
       expect(response.status).toBe(202);
       expect(response.body).toHaveProperty('jobId');
