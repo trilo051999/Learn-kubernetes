@@ -9,30 +9,20 @@ export interface StatsResponse {
 }
 
 export async function getStats(): Promise<StatsResponse> {
-  // Query current list length
-  const queueLength = await redisClient.lLen('job_queue');
+  // Query queue length and atomic counters in parallel
+  const [queueLength, totalSubmittedStr, totalCompletedStr, totalFailedStr, totalTimeStr] =
+    await Promise.all([
+      redisClient.lLen('job_queue'),
+      redisClient.get('stats:total_submitted'),
+      redisClient.get('stats:total_completed'),
+      redisClient.get('stats:total_failed'),
+      redisClient.get('stats:total_processing_time_ms')
+    ]);
 
-  // Fetch all job keys
-  const keys = await redisClient.keys('job:*');
-
-  let totalSubmitted = keys.length;
-  let totalCompleted = 0;
-  let totalFailed = 0;
-  let totalProcessingTimeMs = 0;
-
-  for (const key of keys) {
-    const job = await redisClient.hGetAll(key);
-    if (job && Object.keys(job).length > 0) {
-      if (job.status === 'completed') {
-        totalCompleted++;
-        if (job.processingTimeMs) {
-          totalProcessingTimeMs += parseFloat(job.processingTimeMs);
-        }
-      } else if (job.status === 'error') {
-        totalFailed++;
-      }
-    }
-  }
+  const totalSubmitted = parseInt(totalSubmittedStr || '0', 10);
+  const totalCompleted = parseInt(totalCompletedStr || '0', 10);
+  const totalFailed = parseInt(totalFailedStr || '0', 10);
+  const totalProcessingTimeMs = parseFloat(totalTimeStr || '0');
 
   const averageProcessingTimeMs =
     totalCompleted > 0 ? parseFloat((totalProcessingTimeMs / totalCompleted).toFixed(2)) : 0;

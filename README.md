@@ -160,3 +160,42 @@ npm run test
 cd services/service-c
 npm run test
 ```
+
+---
+
+## Kubernetes Deployment & Observability
+
+All Kubernetes manifests are organized under the `k8s/` directory:
+
+| Manifest | Purpose |
+| --- | --- |
+| `k8s/configmap.yaml` | Application configuration (Redis URL, Ports, JWT Secret, Rate Limits) |
+| `k8s/redis.yaml` | Redis queue deployment and service |
+| `k8s/service-a.yaml` | API Gateway deployment and service |
+| `k8s/service-b.yaml` | Worker deployment with CPU constraints and metrics port 3001 |
+| `k8s/service-c.yaml` | Stats Aggregator deployment and service on port 3002 |
+| `k8s/ingress.yaml` | NGINX Ingress rules with connection and request rate limits |
+| `k8s/hpa.yaml` | Horizontal Pod Autoscaler scaling Service B from 2 to 10 pods (70% CPU target) |
+| `k8s/prometheus-servicemonitor.yaml` | ServiceMonitors for automated Prometheus scraping of Service B and C |
+| `k8s/grafana-dashboard.yaml` | Declarative ConfigMap containing pre-built "Kubernetes Microservices Monitoring" dashboard |
+| `k8s/grafana.yaml` | Standalone Grafana deployment, service, and datasource provisioning |
+
+### Accessing Grafana Dashboards
+
+1. Forward Grafana to localhost:
+```bash
+kubectl port-forward svc/prometheus-grafana 3003:80
+```
+*(Or if using standalone Grafana: `kubectl port-forward svc/grafana-service 3003:3003`)*
+
+2. Open `http://localhost:3003` in your browser.
+3. Login Credentials:
+   * **Username**: `admin`
+   * **Password**: `KXiWlwLRT04JSsbldx8PpfEqtPSK13QsTBsr1eeO` *(or `admin123` on standalone)*
+4. Navigate to **Dashboards** > **Kubernetes Microservices Monitoring** to view:
+   * Queue Backlog (gauge and real-time timeline)
+   * Total Jobs Submitted and Completed
+   * Worker Pods CPU Usage
+   * Service B Active Pods and Autoscaling Scaling History
+   * Average Job Processing Duration
+
