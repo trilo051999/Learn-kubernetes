@@ -48,4 +48,13 @@ describe('Service C API Endpoints', () => {
       expect(response.text).toContain('queue_length');
     });
   });
+
+  describe('GET /healthz', () => {
+    it('should return 200 and healthy status for Kubernetes probe', async () => {
+      const response = await request(app).get('/healthz');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ status: 'healthy' });
+    });
+  });
 });

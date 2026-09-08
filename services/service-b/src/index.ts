@@ -40,12 +40,15 @@ register.registerMetric(jobsProcessedCounter);
 register.registerMetric(jobProcessingTimeHistogram);
 register.registerMetric(jobErrorsCounter);
 
-// Expose a lightweight HTTP server on port 3001 to serve Prometheus metrics
+// Expose a lightweight HTTP server on port 3001 to serve Prometheus metrics and health checks
 const METRICS_PORT = process.env.METRICS_PORT || 3001;
 const metricsServer = http.createServer(async (req, res) => {
   if (req.url === '/metrics') {
     res.setHeader('Content-Type', register.contentType);
     res.end(await register.metrics());
+  } else if (req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'healthy' }));
   } else {
     res.statusCode = 404;
     res.end('Not Found');
@@ -120,6 +123,9 @@ async function runWorker(): Promise<void> {
           console.error('Failed to write error state to Redis:', redisErr);
         }
       }
+
+      // Backoff delay prevents tight CPU spin when Redis is unreachable or restarting
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 }

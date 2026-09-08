@@ -10,12 +10,17 @@ export interface JobData {
 }
 
 export async function enqueueJob(jobId: string): Promise<void> {
-  // Store initial job hash data
-  await redisClient.hSet(`job:${jobId}`, 'status', 'pending');
-  await redisClient.hSet(`job:${jobId}`, 'submittedAt', new Date().toISOString());
+  // Store initial job hash data in a single command
+  await redisClient.hSet(`job:${jobId}`, {
+    status: 'pending',
+    submittedAt: new Date().toISOString()
+  });
 
   // Push job ID into the Redis list queue
   await redisClient.lPush('job_queue', jobId);
+
+  // Maintain atomic counter for cluster-wide metrics aggregation
+  await redisClient.incr('stats:total_submitted');
 }
 
 export async function getJobStatus(jobId: string): Promise<JobData | null> {
